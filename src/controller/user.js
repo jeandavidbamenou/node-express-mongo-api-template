@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import UserModel from "../model/user.js"
 import { pickValue } from '../config/utils.js'
+import userModel from "../model/user.js"
 
 export async function createAccount(req, res)
 {
@@ -15,13 +15,13 @@ export async function createAccount(req, res)
     if (!isValidePassword(password))
         return res.status(403).json({error: "insecure password"})
     password = await bcrypt.hash(password, 10)
-    await UserModel.create(req.body)
+    await userModel.create(req.body)
     res.status(201).json({repport: "created"})
 }
 
 export async function login(req, res)
 {
-    const user = await UserModel.findOne({email: req.body.email})
+    const user = await userModel.findOne({email: req.body.email})
 
     if (!user)
         return res.status(403).json({error: "unrecognized email"})
@@ -40,7 +40,7 @@ export function deleteAccount(pathToAccountId)
     {
         const uid = pickValue(req, pathToAccountId)
 
-        await UserModel.findByIdAndDelete(uid)
+        await userModel.findByIdAndDelete(uid)
         res.status(203).json({repport: "done"})
     }
 }

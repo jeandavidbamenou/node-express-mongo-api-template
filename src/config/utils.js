@@ -1,17 +1,12 @@
-export async function errorSafeWrapper(requesthandler)
+export function repportServerInternalError(err, req, res, next)
 {
-    return async function(req, res, next)
-    {
-        try
-        {
-            await requesthandler(req, res, next)
-        }
-        catch(error)
-        {
-            console.log(`${error.name}: ${error.message}`)
-            res.status(500).json({error: 'server bug'})
-        }
-    }
+    console.error(err.stack)
+    res.status(500).json({error: `server internal error`})
+}
+
+export function makeErrorSafe(requestHandler)
+{
+    return (req, res, next) => Promise.resolve(requestHandler(req, res, next)).catch(next)
 }
 
 export function pickValue(obj, path)
@@ -26,7 +21,7 @@ export function requireRequestBodyField(path, fields)
         const obj = pickValue(request, path)
 
         if (!obj || !fields.every(field => obj.hasOwnProperty(field)))
-            return response.status(401).json({error: 'invalide request body'})
+            return response.status(401).json({ error: 'invalide request body' })
         next()
     }
 }

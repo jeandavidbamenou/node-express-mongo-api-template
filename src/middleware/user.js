@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
-import UserModel from "../model/user.js"
+import userModel from "../model/user.js"
 
 export async function requireEmailUnused(req, res, next)
 {
-    const user = UserModel.findOne({email: req.body.email})
+    const user = userModel.findOne({email: req.body.email})
 
     if (user)
         return res.status(403).json({error: "email already in use"})
