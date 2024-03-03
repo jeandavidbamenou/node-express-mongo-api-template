@@ -1,15 +1,18 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import { pickValue } from '../config/utils.js'
 import userModel from "../model/user.js"
+
+function isValidePassword(password=String())
+{
+    // implement password validation process
+    // maybe it should contain 1 upper case letter, symbole, lower casee, ...
+    if (password.length < 6)
+        return false
+    return true
+}
 
 export async function createAccount(req, res)
 {
-    function isValidePassword(password)
-    {
-        return true
-    }
-
     let password = req.body.password
 
     if (!isValidePassword(password))
@@ -34,13 +37,32 @@ export async function login(req, res)
         res.status(403).json({error: "invalide password"})
 }
 
-export function deleteAccount(pathToAccountId)
+export async function deleteAccount(req, res)
 {
-    return async function (req, res)
-    {
-        const uid = pickValue(req, pathToAccountId)
+    await userModel.findByIdAndDelete(req.uid)
+    res.status(203).json({repport: "done"})
+}
 
-        await userModel.findByIdAndDelete(uid)
-        res.status(203).json({repport: "done"})
-    }
+export async function changeUsername(req, res)
+{
+    await userModel.findByIdAndUpdate(req.uid, {name: req.body.name})
+    res.status(203).json({repport: "done"})
+}
+
+export async function changePassword(req, res)
+{
+    const user = userModel.findById(req.uid)
+
+    if (!user)
+        return res.status(401).json({error: "unhautorized"})
+    
+    const passwordMatch = await bcrypt.compare(req.body.oldPassword, user.password)
+
+    if (!passwordMatch)
+        return res.status(401).json({error: "unhautorized"})
+    if (!isValidePassword(req.body.newPassword))
+        return res.status(403).json({error: "insecure password, can't proccess update"})
+    user.password = await bcrypt.hash(req.body.newPassword, 10)
+    await user.save()
+    res.status(203).json({repport: "done"})
 }

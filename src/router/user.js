@@ -6,8 +6,10 @@ import {
 } from "../middleware/user.js"
 import {
     createAccount,
+    login,
     deleteAccount,
-    login
+    changeUsername,
+    changePassword
 } from "../controller/user.js"
 
 const userRouter = Router()
@@ -161,6 +163,108 @@ userRouter.post('/login', makeErrorSafe(login))
  *                   type: string
  *                   example: deleted
  */
-userRouter.delete('/remove', requireAuthToken, makeErrorSafe(deleteAccount('uid')))
+userRouter.delete('/remove', requireAuthToken, makeErrorSafe(deleteAccount))
+
+/**
+ * @swagger
+ * /user/change/name:
+ *   put:
+ *     summary: Change a user's name
+ *     tags:
+ *       - User
+ *     security:
+ *       - Authorization: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: New user name
+ *                 required: true
+ *     responses:
+ *       203:
+ *         description: Username updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 report:
+ *                   type: string
+ *                   example: done
+ *       401:
+ *         description: Invalid JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: unauthorized
+ */
+userRouter.put('/change/name', requireAuthToken, makeErrorSafe(changeUsername))
+
+/**
+ * @swagger
+ * /user/change/password:
+ *   put:
+ *     summary: Change a user's password
+ *     tags:
+ *       - User
+ *     security:
+ *       - Authorization: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 description: Old user password
+ *                 required: true
+ *               newPassword:
+ *                 type: string
+ *                 description: New password to replace the old one
+ *                 required: true
+ *     responses:
+ *       203:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 report:
+ *                   type: string
+ *                   example: done
+ *       401:
+ *         description: Unauthorized due to invalid JWT token or incorrect old password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: unauthorized
+ *       403:
+ *         description: New password is not secure, can't process update
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: insecure password, can't process update
+ */
+userRouter.put('/change/password', requireAuthToken, makeErrorSafe(changePassword))
 
 export default userRouter
